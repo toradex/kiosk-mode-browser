@@ -1,0 +1,58 @@
+image: docker:latest
+
+variables:
+  # This should be set by docker image already, just to be sure...
+  DOCKER_HOST: tcp://docker:2375
+  # Use overlayfs driver for better performance
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  GITLAB_DOCKERREGISTRY_SUFFIX: -${CI_COMMIT_REF_SLUG}-${CI_PIPELINE_ID}
+
+services:
+  - name: docker:dind
+    command: ["--insecure-registry", "gitlab.toradex.int:4567"]
+
+before_script:
+  - docker info
+
+stages:
+  - build-kiosk-mode-browser
+  - deploy
+
+# Docker image builds
+#
+# Build the Docker images  specificd in DOCKERFILE_FOLDER/IMAGE_NAME and push
+# it to Gitlab's internal Docker registry
+.docker-build:
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - if test -n "${BASE_NAME}"; then docker pull ${CI_REGISTRY_IMAGE}/${BASE_NAME}${GITLAB_DOCKERREGISTRY_SUFFIX} && docker tag ${CI_REGISTRY_IMAGE}/${BASE_NAME}${GITLAB_DOCKERREGISTRY_SUFFIX} torizon/${BASE_NAME} ; fi
+    - docker build -f ${DOCKERFILE_FOLDER}Dockerfile -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}${GITLAB_DOCKERREGISTRY_SUFFIX} ${DOCKERFILE_FOLDER}
+    - docker push ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}${GITLAB_DOCKERREGISTRY_SUFFIX}
+
+docker-build-base:
+  extends: .docker-build
+  variables:
+    IMAGE_NAME: arm32v7-debian-kiosk-mode-browser:buster
+    DOCKERFILE_FOLDER: "./"
+  stage: build-kiosk-mode-browse
+
+# Docker deploy jobs
+#
+# Make sure DOCKER_HUB_USER/DOCKER_HUB_PW is properly set in the project
+# specific Gitlab CI settings.
+.docker-deploy:
+  before_script:
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
+  stage: deploy
+  when: manual
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}${GITLAB_DOCKERREGISTRY_SUFFIX}
+    - docker tag ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}${GITLAB_DOCKERREGISTRY_SUFFIX} ${DOCKER_HUB_USER}/${IMAGE_NAME}
+    - docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}
+
+docker-deploy-kiosk-mode-browser:
+  extends: .docker-deploy
+  variables:
+    IMAGE_NAME: arm32v7-debian-kiosk-mode-browser:buster
