@@ -5,7 +5,7 @@ Container that can be used to run a browser in kiosk-mode, allowing implementati
 This container should be used together with the torizon/arm32v7-debian-weston:buster container to provide a kiosk-mode user interface with a browser that opens an 
 URL passed as a parameter, does not show error messages/popups and does not allow the user to navigate to different websites.
 
-Current implementation is based on electron and oak: [https://github.com/OakLabsInc/oak](https://github.com/OakLabsInc/oak)
+Current implementation is based on chromium (using ozone/wayland rendering backend).
 
 ## Usage
 
@@ -27,7 +27,7 @@ This small sample docker-compose.yaml file shows how to do this with portainer (
 version: "3.2"
 services:
   weston:
-    image: torizon/arm32v7-debian-weston:buster
+    image: torizon/arm32v7-debian-weston:latest
     privileged: true
     volumes:
       - type: bind
@@ -48,17 +48,22 @@ services:
         target: /var/run/docker.sock
 
   kiosk:
-    image: oak:latest
+    image: torizon/arm32v7-debian-kiosk-mode-browser:latest
     command: http://portainer:9000
     volumes:
       - type: bind
         source: /tmp
         target: /tmp
+      - type: bind
+        source: /var/run/dbus
+        target: /var/run/dbus
+      - type: bind
+        source: /dev/dri
+        target: /dev/dri
     depends_on:
       - portainer
       - weston
 
 volumes:
   portainer_data:
-
 ```
