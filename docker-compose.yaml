@@ -23,7 +23,7 @@ services:
 
   kiosk:
     image: torizon/arm32v7-debian-kiosk-mode-browser:latest
-    command: http://portainer:9000
+    command: --window-mode http://portainer:9000
     volumes:
       - type: bind
         source: /tmp

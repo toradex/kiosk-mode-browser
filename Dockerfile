@@ -10,5 +10,7 @@ RUN apt-get -y update && \
 # temporary workaround for an issue in multi-arch package creation
 RUN mv /usr/lib/\*/libminigbm.so /usr/lib/arm-linux-gnueabihf/
 
-ENTRYPOINT ["/usr/bin/chromium","--kiosk","--no-sandbox","--test-type"]
+COPY start-browser.sh /usr/bin/start-browser
+
+ENTRYPOINT ["/usr/bin/start-browser"]
 CMD ["http://www.toradex.com"]
