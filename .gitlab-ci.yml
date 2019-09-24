@@ -60,7 +60,7 @@ docker-build-kiosk-mode-browser:
   variables:
     DOCKER_TAGS: "buster 10 10.1 latest"
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
   stage: deploy
   when: manual
   script:
@@ -74,7 +74,6 @@ docker-build-kiosk-mode-browser:
     do
       docker tag ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${tag};
     done
-  - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
   - docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}
 
 
