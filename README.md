@@ -16,6 +16,11 @@ When you start the kiosk container you need to provide it access to the /tmp fol
 $> docker run -v /tmp:/tmp torizon/arm32v7-debian-kiosk-mode-browser http://www.toradex.com
 ```
 
+### Optional command line flags
+It's possibile to start chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.  
+- --window-mode : runs the browser inside a maximized window without navigation bar
+- --browser-mode : runs the browser in a standard windows with navigation bars and all user menus enabled
+
 ## Docker Compose
 
 Docker compose can be used to start multiple containers at the same time, providing shared data volumes, mount points, resource usage limitations etc.
@@ -49,7 +54,7 @@ services:
 
   kiosk:
     image: torizon/arm32v7-debian-kiosk-mode-browser:latest
-    command: http://portainer:9000
+    command: --window-mode http://portainer:9000
     volumes:
       - type: bind
         source: /tmp
