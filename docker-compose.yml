@@ -9,7 +9,7 @@ services:
         target: /tmp
 
   portainer:
-    image: portainer/portainer
+    image: portainer/portainer:latest
     command: -H unix:///var/run/docker.sock
     ports:
       - 9000:9000
