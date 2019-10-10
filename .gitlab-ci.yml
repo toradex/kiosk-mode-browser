@@ -31,12 +31,11 @@ stages:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - if test -n "${BASE_NAME}"; then docker pull ${CI_REGISTRY_IMAGE}/${BASE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} && docker tag ${CI_REGISTRY_IMAGE}/${BASE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} torizon/${BASE_NAME}:buster ; fi || exit 1
     # Try to download latest image for cache, but don't fail if it does not exist
     - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} || true
     - |
         docker build --build-arg IMAGE_ARCH=${IMAGE_ARCH} \
-                     --build-arg BASE_NAME=${BASE_NAME} \
+                     --build-arg BASE_IMAGE=${BASE_IMAGE} \
                      --cache-from ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} \
                      -f ${DOCKERFILE_FOLDER}Dockerfile \
                      -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} \
@@ -48,9 +47,26 @@ stages:
 docker-build-kiosk-mode-browser:
   extends: .docker-build
   variables:
+    BASE_IMAGE: torizon/arm32v7-debian-wayland-base
     IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
     DOCKERFILE_FOLDER: "./"
   stage: build-kiosk-mode-browser
+
+docker-build-kiosk-mode-browser-arm64:
+  extends: .docker-build
+  variables:
+    BASE_IMAGE: torizon/arm64v8-debian-wayland-base
+    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+    DOCKERFILE_FOLDER: "./"
+  stage: build-kiosk-mode-browser
+
+#docker-build-kiosk-mode-browser-arm64-vivante:
+#  extends: .docker-build
+#  variables:
+#    BASE_IMAGE: torizon/arm64v8-debian-wayland-base-vivante
+#    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+#    DOCKERFILE_FOLDER: "./"
+#  stage: build-kiosk-mode-browser
 
 # Docker deploy jobs
 #
@@ -81,3 +97,13 @@ docker-deploy-kiosk-mode-browser:
   extends: .docker-deploy
   variables:
     IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
+
+docker-deploy-kiosk-mode-browser-arm64:
+  extends: .docker-deploy
+  variables:
+    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+
+#docker-deploy-kiosk-mode-browser-arm64-vivante:
+#  extends: .docker-deploy
+#  variables:
+#    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser-vivante

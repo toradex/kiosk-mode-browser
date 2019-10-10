@@ -1,4 +1,6 @@
-FROM torizon/arm32v7-debian-wayland-base:buster
+ARG BASE_IMAGE=torizon/arm32v7-debian-wayland-base
+
+FROM $BASE_IMAGE:latest
 
 RUN cat /etc/apt/sources.list
 
