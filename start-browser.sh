@@ -24,4 +24,4 @@ if [ ! -z "$1" ]; then
     url=$1
 fi
 
-chromium $chromium_parms_base $chromium_parms$url
+exec chromium $chromium_parms_base $chromium_parms$url
