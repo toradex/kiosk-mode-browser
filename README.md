@@ -19,7 +19,7 @@ $> docker run -v /tmp:/tmp torizon/arm32v7-debian-kiosk-mode-browser http://www.
 ### Optional command line flags
 It's possibile to start chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.  
 - --window-mode : runs the browser inside a maximized window without navigation bar
-- --browser-mode : runs the browser in a standard windows with navigation bars and all user menus enabled
+- --browser-mode : runs the browser in a standard window with navigation bars and all user menus enabled
 
 ## Docker Compose
 
