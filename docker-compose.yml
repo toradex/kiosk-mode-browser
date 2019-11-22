@@ -57,6 +57,7 @@ services:
     depends_on:
       - portainer
       - weston
+    shm_size: '256mb'
     device_cgroup_rules:
       # ... for /dev/dri devices
       - 'c 226:* rmw'
