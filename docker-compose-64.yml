@@ -29,7 +29,7 @@ services:
 
   portainer:
     image: portainer/portainer:latest
-    command: -H unix:///var/run/docker.sock
+    command: -H unix:///var/run/docker.sock --admin-password=$$2y$$05$$wUwPQ6QCd/Y5IB/JLPTYn.RVuyKozg7vlqDCGA6Z7WrL6b5jDLSby
     ports:
       - 9000:9000
     volumes:
@@ -50,15 +50,9 @@ services:
       - type: bind
         source: /var/run/dbus
         target: /var/run/dbus
-      - type: bind
-        source: /dev/dri
-        target: /dev/dri
     depends_on:
       - portainer
       - weston
-    device_cgroup_rules:
-      # ... for /dev/dri devices
-      - 'c 226:* rmw'
 
 volumes:
   portainer_data:

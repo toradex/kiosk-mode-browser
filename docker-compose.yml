@@ -29,7 +29,8 @@ services:
 
   portainer:
     image: portainer/portainer:latest
-    command: -H unix:///var/run/docker.sock
+    # default user/password is admin/toradex2019
+    command: -H unix:///var/run/docker.sock --admin-password=$$2y$$05$$wUwPQ6QCd/Y5IB/JLPTYn.RVuyKozg7vlqDCGA6Z7WrL6b5jDLSby
     ports:
       - 9000:9000
     volumes:
@@ -59,6 +60,7 @@ services:
     device_cgroup_rules:
       # ... for /dev/dri devices
       - 'c 226:* rmw'
+
 
 volumes:
   portainer_data:

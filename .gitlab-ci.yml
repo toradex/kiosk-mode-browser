@@ -37,6 +37,7 @@ stages:
         docker build --build-arg IMAGE_ARCH=${IMAGE_ARCH} \
                      --build-arg BASE_IMAGE=${BASE_IMAGE} \
                      --cache-from ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} \
+                     ${DOCKER_NO_CACHE:+--no-cache} \
                      -f ${DOCKERFILE_FOLDER}Dockerfile \
                      -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} \
                      -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} \
@@ -50,6 +51,7 @@ docker-build-kiosk-mode-browser:
     BASE_IMAGE: torizon/arm32v7-debian-wayland-base
     IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
     DOCKERFILE_FOLDER: "./"
+    DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
   stage: build-kiosk-mode-browser
 
 docker-build-kiosk-mode-browser-arm64:
@@ -58,6 +60,7 @@ docker-build-kiosk-mode-browser-arm64:
     BASE_IMAGE: torizon/arm64v8-debian-wayland-base
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
     DOCKERFILE_FOLDER: "./"
+    DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
   stage: build-kiosk-mode-browser
 
 #docker-build-kiosk-mode-browser-arm64-vivante:
