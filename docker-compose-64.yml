@@ -2,6 +2,10 @@ version: "2.4"
 services:
   weston:
     image: torizon/arm64v8-debian-weston-vivante:latest
+    # please uncomment the following two lines to accept the
+    # EULA required to run imx8 vivante graphic drivers
+    #environment:
+    # - -ACCEPT_FSL_EULA=1
     # Required to get udev events from host udevd via netlink
     network_mode: host
     volumes:
@@ -24,6 +28,7 @@ services:
       - 'c 4:7 rmw'
       # ... for /dev/input devices
       - 'c 13:* rmw'
+      - 'c 199:* rmw'
       # ... for /dev/dri devices
       - 'c 226:* rmw'
 
@@ -43,6 +48,7 @@ services:
   kiosk:
     image: torizon/arm64v8-debian-kiosk-mode-browser:latest
     command: --window-mode http://portainer:9000
+    shm_size: 256mb
     volumes:
       - type: bind
         source: /tmp
