@@ -98,3 +98,12 @@ services:
 volumes:
   portainer_data:
 ```
+
+## imx8 and EULA
+
+In the repo you'll find also a dockerfile name docker-compose-64.yml, this can be used on imx8 but to be able to run the weston compositor you have to accept an additional EULA.  
+To do this you may uncomment the environment section of the weston service configuration or you can run docker-compose setting an environment variable on the command line when you start the containers:
+
+```
+docker-compose -e ACCEPT_FSL_EULA=1 up
+```
