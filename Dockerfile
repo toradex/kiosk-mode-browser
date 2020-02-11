@@ -7,6 +7,7 @@ RUN cat /etc/apt/sources.list
 RUN apt-get -y update && \
     apt-get install -y --no-install-recommends chromium chromium-sandbox && \
     apt-get clean && apt-get autoremove && \
+    update-mime-database /usr/share/mime && \
     rm -rf /var/lib/apt/lists/*
 
 COPY start-browser.sh /usr/bin/start-browser
