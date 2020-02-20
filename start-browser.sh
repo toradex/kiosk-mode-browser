@@ -4,7 +4,7 @@
 url="www.toradex.com"
 
 # default parms for kiosk mode
-chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications "
+chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 "
 chromium_parms="--kiosk "
 
 for arg in "$@"
