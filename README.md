@@ -13,11 +13,16 @@ You should start the wayland server container first (torizon/arm32v7-debian-west
 When you start the kiosk container you need to provide access to the /tmp folder (used for wayland and X11 sockets), /dev/dri (for buffer sharing/hardware acceleration) and provide the URL you want to open as command line parameter.
 
 ```bash
-$> docker run -d --rm -v /tmp:/tmp -v /dev/dri:/dev/dri --device-cgroup-rule='c 226:* rmw' \
-              torizon/arm32v7-debian-kiosk-mode-browser http://www.toradex.com
+$> docker run -d --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
+              --device-cgroup-rule='c 226:* rmw' --shm-size="256m"
+              --security-opt="seccomp=unconfined" \
+              torizon/arm32v7-debian-kiosk-mode-browser https://www.toradex.com
 ```
 
+Replace arm32v7 with arm64v8 for the 64-bit variant.
+
 ### Optional command line flags
+
 It's possibile to start chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.  
 - --window-mode : runs the browser inside a maximized window without navigation bar
 - --browser-mode : runs the browser in a standard window with navigation bars and all user menus enabled
@@ -25,85 +30,7 @@ It's possibile to start chromium in less-secure ways (secure from the point of v
 ## Docker Compose
 
 Docker compose can be used to start multiple containers at the same time, providing shared data volumes, mount points, resource usage limitations etc.
-If you want to use the kiosk-mode-browser container in this way it's a good idea to make it dependent from the wayland server container and the container providing the data that should be displayed by the UI.
+If you want to use the kiosk-mode-browser container in this way it's a good idea to make it dependent from the wayland compositor container and the container providing the data that should be displayed by the UI.
 
-This small sample docker-compose.yaml file shows how to do this with portainer (used to monitor docker itself). To use the device_cgroup_rules configuration option we have to use Compose file version 2.4 currently.
+You can find example Docker compose files in our sample repository: https://github.com/toradex/torizon-samples/tree/master/debian-container/demonstration
 
-```yaml
-version: "2.4"
-services:
-  weston:
-    image: torizon/arm32v7-debian-weston:latest
-    # Required to get udev events from host udevd via netlink
-    network_mode: host
-    volumes:
-      - type: bind
-        source: /tmp
-        target: /tmp
-      - type: bind
-        source: /dev
-        target: /dev
-      - type: bind
-        source: /run/udev
-        target: /run/udev
-    cap_add:
-      - CAP_SYS_TTY_CONFIG
-    # Add device access rights through cgroup...
-    device_cgroup_rules:
-      # ... for tty0
-      - 'c 4:0 rmw'
-      # ... for tty7
-      - 'c 4:7 rmw'
-      # ... for /dev/input devices
-      - 'c 13:* rmw'
-      # ... for /dev/dri devices
-      - 'c 226:* rmw'
-
-  portainer:
-    image: portainer/portainer:latest
-    # default user/password is admin/toradex2019
-    command: -H unix:///var/run/docker.sock --admin-password=$$2y$$05$$wUwPQ6QCd/Y5IB/JLPTYn.RVuyKozg7vlqDCGA6Z7WrL6b5jDLSby
-    ports:
-      - 9000:9000
-    volumes:
-      - type: volume
-        source: portainer_data
-        target: /data
-      - type: bind
-        source: /var/run/docker.sock
-        target: /var/run/docker.sock
-
-  kiosk:
-    image: torizon/arm32v7-debian-kiosk-mode-browser:latest
-    command: --window-mode http://portainer:9000
-    volumes:
-      - type: bind
-        source: /tmp
-        target: /tmp
-      - type: bind
-        source: /var/run/dbus
-        target: /var/run/dbus
-      - type: bind
-        source: /dev/dri
-        target: /dev/dri
-    depends_on:
-      - portainer
-      - weston
-    shm_size: '256mb'
-    device_cgroup_rules:
-      # ... for /dev/dri devices
-      - 'c 226:* rmw'
-
-
-volumes:
-  portainer_data:
-```
-
-## imx8 and EULA
-
-In the repo you'll find also a dockerfile name docker-compose-64.yml, this can be used on imx8 but to be able to run the weston compositor you have to accept an additional EULA.  
-To do this you may uncomment the environment section of the weston service configuration or you can run docker-compose setting an environment variable on the command line when you start the containers:
-
-```
-docker-compose -e ACCEPT_FSL_EULA=1 up
-```
