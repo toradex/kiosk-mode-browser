@@ -13,11 +13,16 @@ You should start the wayland server container first (torizon/arm32v7-debian-west
 When you start the kiosk container you need to provide access to the /tmp folder (used for wayland and X11 sockets), /dev/dri (for buffer sharing/hardware acceleration) and provide the URL you want to open as command line parameter.
 
 ```bash
-$> docker run -d --rm -v /tmp:/tmp -v /dev/dri:/dev/dri --device-cgroup-rule='c 226:* rmw' \
-              torizon/arm32v7-debian-kiosk-mode-browser http://www.toradex.com
+$> docker run -d --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
+              --device-cgroup-rule='c 226:* rmw' --shm-size="256m"
+              --security-opt="seccomp=unconfined" \
+              torizon/arm32v7-debian-kiosk-mode-browser https://www.toradex.com
 ```
 
+Replace arm32v7 with arm64v8 for the 64-bit variant.
+
 ### Optional command line flags
+
 It's possibile to start chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.  
 - --window-mode : runs the browser inside a maximized window without navigation bar
 - --browser-mode : runs the browser in a standard window with navigation bars and all user menus enabled
