@@ -2,7 +2,11 @@ ARG BASE_IMAGE=torizon/arm32v7-debian-wayland-base
 
 FROM $BASE_IMAGE:latest
 
-RUN cat /etc/apt/sources.list
+# Needs to come after FROM!
+ARG BUILD_TYPE=wayland
+
+RUN test "$BUILD_TYPE" = "x11" && \
+        sed -i '/feeds.toradex.com/d' /etc/apt/sources.list || true
 
 RUN apt-get -y update && \
     apt-get install -y --no-install-recommends chromium chromium-sandbox && \
@@ -15,6 +19,7 @@ COPY start-browser.sh /usr/bin/start-browser
 USER torizon
 
 ENV LIBGL_ALWAYS_SOFTWARE=1
+ENV DISPLAY=:0
 
 ENTRYPOINT ["/usr/bin/start-browser"]
 CMD ["http://www.toradex.com"]

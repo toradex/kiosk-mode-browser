@@ -28,6 +28,7 @@ stages:
 .docker-build:
   variables:
     IMAGE_ARCH: arm32v7
+    BUILD_TYPE: wayland
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
@@ -36,6 +37,7 @@ stages:
     - |
         docker build --build-arg IMAGE_ARCH=${IMAGE_ARCH} \
                      --build-arg BASE_IMAGE=${BASE_IMAGE} \
+                     --build-arg BUILD_TYPE=${BUILD_TYPE} \
                      --cache-from ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} \
                      ${DOCKER_NO_CACHE:+--no-cache} \
                      -f ${DOCKERFILE_FOLDER}Dockerfile \
@@ -50,6 +52,16 @@ docker-build-kiosk-mode-browser:
   variables:
     BASE_IMAGE: torizon/arm32v7-debian-wayland-base
     IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
+    DOCKERFILE_FOLDER: "./"
+    DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
+  stage: build-kiosk-mode-browser
+
+docker-build-kiosk-mode-browser-x11:
+  extends: .docker-build
+  variables:
+    BASE_IMAGE: torizon/arm32v7-debian-base
+    IMAGE_NAME: arm32v7-debian-kiosk-mode-browser-x11
+    BUILD_TYPE: x11
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
   stage: build-kiosk-mode-browser
