@@ -21,6 +21,14 @@ $> docker run -d --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/ru
 
 Replace arm32v7 with arm64v8 for the 64-bit variant.
 
+For the X11 build we have to provide shared memory access from the host system:
+```bash
+$> docker run -d --ipc=host --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
+              --device-cgroup-rule='c 226:* rmw' --shm-size="256m"
+              --security-opt="seccomp=unconfined" \
+              torizon/arm32v7-debian-kiosk-mode-browser https://www.toradex.com
+```
+
 ### Optional command line flags
 
 It's possibile to start chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.  
