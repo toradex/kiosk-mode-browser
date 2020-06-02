@@ -113,6 +113,11 @@ docker-deploy-kiosk-mode-browser:
   variables:
     IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
 
+docker-deploy-kiosk-mode-browser-x11:
+  extends: .docker-deploy
+  variables:
+    IMAGE_NAME: arm32v7-debian-kiosk-mode-browser-x11
+
 docker-deploy-kiosk-mode-browser-arm64:
   extends: .docker-deploy
   variables:
