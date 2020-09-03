@@ -1,6 +1,8 @@
 image: docker:latest
 
 variables:
+  DEBIAN_RELEASE: "buster"
+  # container version
   KIOSK_MODE_BROWSER_MAJOR: "1"
   KIOSK_MODE_BROWSER_MINOR: "0"
   KIOSK_MODE_BROWSER_PATCH: "0"
@@ -43,24 +45,27 @@ stages:
 # it to Gitlab's internal Docker registry
 .docker-build:
   variables:
+    IMAGE_ARCH: linux/arm
     BUILD_TYPE: wayland
   script:
     # Try to download latest image for cache, but don't fail if it does not exist
     - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} || true
     - export DATE=$(date +%Y%m%d)
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --build-arg BUILD_TYPE=${BUILD_TYPE} 
-                     --build-arg BASE_IMAGE=${BASE_IMAGE} 
-                     --cache-from ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} 
-                     ${DOCKER_NO_CACHE:+--no-cache} 
-                     --label container.name=${IMAGE_NAME} 
-                     --label container.version=${MAJOR}.${MINOR}.${PATCH}-${DATE} 
-                     --label git.branch=${CI_COMMIT_BRANCH} 
-                     --label git.hash=${CI_COMMIT_SHA} 
-                     --label pipeline.id=${CI_PIPELINE_ID} 
-                     -f ${DOCKERFILE_FOLDER}Dockerfile 
-                     -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} 
-                     -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} 
+    - docker build --build-arg BUILD_TYPE=${BUILD_TYPE}
+                     --build-arg BASE_IMAGE=${BASE_IMAGE}
+                     --build-arg IMAGE_TAG=${IMAGE_TAG}
+                     --build-arg IMAGE_ARCH=${IMAGE_ARCH}
+                     --cache-from ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
+                     ${DOCKER_NO_CACHE:+--no-cache}
+                     --label container.name=${IMAGE_NAME}
+                     --label container.version=${MAJOR}.${MINOR}.${PATCH}-${DATE}
+                     --label git.branch=${CI_COMMIT_BRANCH}
+                     --label git.hash=${CI_COMMIT_SHA}
+                     --label pipeline.id=${CI_PIPELINE_ID}
+                     -f ${DOCKERFILE_FOLDER}Dockerfile
+                     -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
+                     -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
                      ${DOCKERFILE_FOLDER}
     - docker push ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
     - docker push ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
@@ -72,7 +77,8 @@ docker-build-kiosk-mode-browser:
     - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
     - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
-    BASE_IMAGE: torizon/arm32v7-debian-wayland-base
+    IMAGE_TAG: ${KIOSK_MODE_BROWSER_MAJOR}
+    BASE_IMAGE: wayland-base
     IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
@@ -85,7 +91,8 @@ docker-build-kiosk-mode-browser-x11:
     - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"
     - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"
   variables:
-    BASE_IMAGE: torizon/arm32v7-debian-base
+    IMAGE_TAG: ${KIOSK_MODE_BROWSER_X11_MAJOR}-${DEBIAN_RELEASE}
+    BASE_IMAGE: debian
     IMAGE_NAME: kiosk-mode-browser-x11
     BUILD_TYPE: x11
     DOCKERFILE_FOLDER: "./"
@@ -99,7 +106,9 @@ docker-build-kiosk-mode-browser-arm64:
     - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
     - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
-    BASE_IMAGE: torizon/arm64v8-debian-wayland-base
+    IMAGE_ARCH: linux/arm64
+    IMAGE_TAG: ${KIOSK_MODE_BROWSER_MAJOR}
+    BASE_IMAGE: wayland-base
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
@@ -165,7 +174,7 @@ docker-deploy-kiosk-mode-browser-major:
 docker-deploy-kiosk-mode-browser-x11-major:
   extends: .docker-deploy-major
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"
   variables:
     IMAGE_NAME: kiosk-mode-browser-x11
   stage: deploy-major
@@ -173,7 +182,7 @@ docker-deploy-kiosk-mode-browser-x11-major:
 docker-deploy-kiosk-mode-browser-arm64-major:
   extends: .docker-deploy-major
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
   variables:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
   stage: deploy-major
@@ -186,7 +195,7 @@ docker-deploy-kiosk-mode-browser-arm64-major:
   - docker tag ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}
   - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
   - docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}
-  
+
 docker-deploy-kiosk-mode-browser-minor:
   extends: .docker-deploy-minor
   before_script:
@@ -199,8 +208,8 @@ docker-deploy-kiosk-mode-browser-minor:
 docker-deploy-kiosk-mode-browser-x11-minor:
   extends: .docker-deploy-minor
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"
   variables:
     IMAGE_NAME: kiosk-mode-browser-x11
   stage: deploy-minor
@@ -208,21 +217,23 @@ docker-deploy-kiosk-mode-browser-x11-minor:
 docker-deploy-kiosk-mode-browser-arm64-minor:
   extends: .docker-deploy-minor
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
   variables:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
   stage: deploy-minor
-  
+
 .docker-deploy-patch:
   when: manual
   script:
+  - *do_docker_experimental
+  - docker manifest inspect ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH} > /dev/null && true; RESULT=$?
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
   - docker tag ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}
   - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
-  - docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}
-  
+  - (if [ ${RESULT} == 1 ] ; then docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME} ; else echo Image with this tag already exists. ; fi)
+
 docker-deploy-kiosk-mode-browser-patch:
   extends: .docker-deploy-patch
   before_script:
@@ -236,9 +247,9 @@ docker-deploy-kiosk-mode-browser-patch:
 docker-deploy-kiosk-mode-browser-x11-patch:
   extends: .docker-deploy-patch
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"  
-    - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"
   variables:
     IMAGE_NAME: kiosk-mode-browser-x11
   stage: deploy-patch
@@ -246,23 +257,25 @@ docker-deploy-kiosk-mode-browser-x11-patch:
 docker-deploy-kiosk-mode-browser-arm64-patch:
   extends: .docker-deploy-patch
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"  
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
-  stage: deploy-patch  
+  stage: deploy-patch
 
 .docker-deploy-patch-date:
   when: manual
   script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - *do_docker_experimental
   - export DATE=$(date +%Y%m%d)
+  - docker manifest inspect ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE} > /dev/null && true; RESULT=$?
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
   - docker tag ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE}
   - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
-  - docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}
-  
+  - (if [ ${RESULT} == 1 ] ; then docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME} ; else echo Image with this tag already exists. ; fi)
+
 docker-deploy-kiosk-mode-browser-patch-date:
   extends: .docker-deploy-patch-date
   before_script:
@@ -276,9 +289,9 @@ docker-deploy-kiosk-mode-browser-patch-date:
 docker-deploy-kiosk-mode-browser-x11-patch-date:
   extends: .docker-deploy-patch-date
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"  
-    - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"
   variables:
     IMAGE_NAME: kiosk-mode-browser-x11
   stage: deploy-patch-date
@@ -286,15 +299,15 @@ docker-deploy-kiosk-mode-browser-x11-patch-date:
 docker-deploy-kiosk-mode-browser-arm64-patch-date:
   extends: .docker-deploy-patch-date
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"  
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
-  stage: deploy-patch-date    
+  stage: deploy-patch-date
 
 .docker-deploy-multiarch-major:
-  when: manual    
+  when: manual
   script:
   - *do_docker_experimental
   - rm -rf ~/.docker/manifests/*
@@ -304,11 +317,11 @@ docker-deploy-kiosk-mode-browser-arm64-patch-date:
   - docker manifest annotate ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_64}:${MAJOR} --os linux --arch arm64
   - docker manifest inspect -v ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}
   - docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}
-  
+
 docker-deploy-kiosk-mode-browser-multiarch-major:
   extends: .docker-deploy-multiarch-major
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
   variables:
     IMAGE_NAME: kiosk-mode-browser
     IMAGE_NAME_32: arm32v7-debian-kiosk-mode-browser
@@ -316,7 +329,7 @@ docker-deploy-kiosk-mode-browser-multiarch-major:
   stage: deploy-multiarch-major  
 
 .docker-deploy-multiarch-minor:
-  when: manual    
+  when: manual
   script:
   - *do_docker_experimental
   - rm -rf ~/.docker/manifests/*
@@ -326,63 +339,65 @@ docker-deploy-kiosk-mode-browser-multiarch-major:
   - docker manifest annotate ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_64}:${MAJOR}.${MINOR}  --os linux --arch arm64
   - docker manifest inspect -v ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}
   - docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}
-  
+
 docker-deploy-kiosk-mode-browser-multiarch-minor:
   extends: .docker-deploy-multiarch-minor
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
   variables:
     IMAGE_NAME: kiosk-mode-browser
     IMAGE_NAME_32: arm32v7-debian-kiosk-mode-browser
     IMAGE_NAME_64: arm64v8-debian-kiosk-mode-browser
-  stage: deploy-multiarch-minor  
-  
+  stage: deploy-multiarch-minor
+
 .docker-deploy-multiarch-patch:
   when: manual
   script:
   - *do_docker_experimental
   - rm -rf ~/.docker/manifests/*
+  - docker manifest inspect ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH} > /dev/null && true; RESULT=$?
   - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
   - docker manifest create ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_32}:${MAJOR}.${MINOR}.${PATCH} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_64}:${MAJOR}.${MINOR}.${PATCH}
   - docker manifest annotate ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_32}:${MAJOR}.${MINOR}.${PATCH} --os linux --arch arm
   - docker manifest annotate ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_64}:${MAJOR}.${MINOR}.${PATCH} --os linux --arch arm64
   - docker manifest inspect -v ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}
-  - docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}
-  
+  - (if [ ${RESULT} == 1 ] ; then docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH} ; else echo Image with this tag already exists. ; fi)
+
 docker-deploy-kiosk-mode-browser-multiarch-patch:
   extends: .docker-deploy-multiarch-patch
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"  
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
     IMAGE_NAME: kiosk-mode-browser
     IMAGE_NAME_32: arm32v7-debian-kiosk-mode-browser
     IMAGE_NAME_64: arm64v8-debian-kiosk-mode-browser
-  stage: deploy-multiarch-patch  
-  
+  stage: deploy-multiarch-patch
+
 .docker-deploy-multiarch-patch-date:
   when: manual
   script:
   - *do_docker_experimental
   - rm -rf ~/.docker/manifests/*
-  - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
   - export DATE=$(date +%Y%m%d)
+  - docker manifest inspect ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE} > /dev/null && true; RESULT=$?
+  - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
   - docker manifest create ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_32}:${MAJOR}.${MINOR}.${PATCH}-${DATE} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_64}:${MAJOR}.${MINOR}.${PATCH}-${DATE}
   - docker manifest annotate ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_32}:${MAJOR}.${MINOR}.${PATCH}-${DATE}  --os linux --arch arm
   - docker manifest annotate ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE} ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME_64}:${MAJOR}.${MINOR}.${PATCH}-${DATE}  --os linux --arch arm64
   - docker manifest inspect -v ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE}
-  - docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE}
-  
+  - (if [ ${RESULT} == 1 ] ; then docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH}-${DATE} ; else echo Image with this tag already exists. ; fi)
+
 docker-deploy-kiosk-mode-browser-multiarch-patch-date:
   extends: .docker-deploy-multiarch-patch-date
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"  
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"  
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"  
+    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
     IMAGE_NAME: kiosk-mode-browser
     IMAGE_NAME_32: arm32v7-debian-kiosk-mode-browser
     IMAGE_NAME_64: arm64v8-debian-kiosk-mode-browser
-  stage: deploy-multiarch-patch-date 
+  stage: deploy-multiarch-patch-date
