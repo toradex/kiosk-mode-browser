@@ -5,9 +5,9 @@ ARG IMAGE_ARCH=linux/arm
 ARG BASE_IMAGE=wayland-base
 # For iMX7 use:
 # ARG BASE_IMAGE=debian
-ARG IMAGE_TAG=1
+ARG IMAGE_TAG=2
 # For iMX7 use:
-# ARG IMAGE_TAG=1-buster
+# ARG IMAGE_TAG=2-bullseye
 FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG AS first
 RUN apt-get -y update && \
     apt-get install -y --no-install-recommends wget

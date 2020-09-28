@@ -6,8 +6,11 @@ url="www.toradex.com"
 # default parms for kiosk mode
 chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 "
 chromium_parms="--kiosk "
-# Additional params should be stacked chromium_parms_extended="$chromium_params_extended ..."
+# Additional params should be stacked chromium_parms_extended="$chromium_parms_extended ..."
 chromium_parms_extended=""
+
+# FIXME: TOR-1426: work around seccomp-bpf failures in chromium.
+chromium_parms_extended="$chromium_parms_extended --disable-seccomp-filter-sandbox"
 
 for arg in "$@"
 do

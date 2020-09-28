@@ -2,14 +2,14 @@
 
 Container that can be used to run a browser in kiosk-mode, allowing implementation of web-based UIs.
 
-This container should be used together with the torizon/arm32v7-debian-weston:buster container to provide a kiosk-mode user interface with a browser that opens an 
+This container should be used together with the torizon/weston container to provide a kiosk-mode user interface with a browser that opens an
 URL passed as a parameter, does not show error messages/popups and does not allow the user to navigate to different websites.
 
 Current implementation is based on chromium (using ozone/wayland rendering backend).
 
 ## Usage
 
-You should start the wayland server container first (torizon/arm32v7-debian-weston:buster) and the container providing the local UI, if required.
+You should start the wayland server container first (torizon/weston) and the container providing the local UI, if required.
 When you start the kiosk container you need to provide access to the /tmp folder (used for wayland and X11 sockets), /dev/dri (for buffer sharing/hardware acceleration) and provide the URL you want to open as command line parameter.
 
 ```bash
