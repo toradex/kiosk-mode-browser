@@ -1,3 +1,9 @@
+Please check our Developer Article [Kiosk Mode Browser with TorizonCore] for more details.
+
+[Kiosk Mode Browser with TorizonCore]: https://developer.toradex.com/knowledge-base/kiosk-mode-browser-with-torizon-core
+
+And, for the impatient, you can see below some details on how to get this sample up and running in a Torizon compatible module.
+
 # kiosk-mode-browser
 
 Container that can be used to run a browser in kiosk-mode, allowing implementation of web-based UIs.
