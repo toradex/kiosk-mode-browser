@@ -52,6 +52,7 @@ stages:
     - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} || true
     - export DATE=$(date +%Y%m%d)
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - docker build --build-arg BUILD_TYPE=${BUILD_TYPE}
                      --build-arg BASE_IMAGE=${BASE_IMAGE}
                      --build-arg IMAGE_TAG=${IMAGE_TAG}
