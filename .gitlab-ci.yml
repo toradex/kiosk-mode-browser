@@ -4,11 +4,11 @@ variables:
   DEBIAN_RELEASE: "bullseye"
   # container version
   KIOSK_MODE_BROWSER_MAJOR: "2"
-  KIOSK_MODE_BROWSER_MINOR: "1"
+  KIOSK_MODE_BROWSER_MINOR: "2"
   KIOSK_MODE_BROWSER_PATCH: "0"
   
   KIOSK_MODE_BROWSER_X11_MAJOR: "2"
-  KIOSK_MODE_BROWSER_X11_MINOR: "1"
+  KIOSK_MODE_BROWSER_X11_MINOR: "2"
   KIOSK_MODE_BROWSER_X11_PATCH: "0"  
   
   # This should be set by docker image already, just to be sure...
