@@ -34,7 +34,7 @@ RUN test "$BUILD_TYPE" = "x11" && \
 
 # Install Chromium
 RUN apt-get -y update && \
-    apt-get install -y --no-install-recommends chromium chromium-sandbox && \
+    apt-get -o Acquire::Http::Dl-limit=100 install -y --no-install-recommends chromium chromium-sandbox && \
     apt-get clean && apt-get autoremove && \
     update-mime-database /usr/share/mime && \
     rm -rf /var/lib/apt/lists/*
@@ -48,7 +48,7 @@ RUN apt-get -y update && \
 RUN if [ "$BUILD_TYPE" = "wayland" ]; then \
     echo "deb http://deb.debian.org/debian experimental main" >> /etc/apt/sources.list && \
     apt-get -y update && \
-    apt-get -t experimental install -y --no-install-recommends cog && \
+    apt-get -o Acquire::Http::Dl-limit=100 -t experimental install -y --no-install-recommends cog && \
     apt-get clean && apt-get autoremove && rm -rf /var/lib/apt/lists/* ; fi
 
 # Copy the virtual keyboard extension from the first stage
