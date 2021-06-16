@@ -3,6 +3,8 @@ ARG IMAGE_ARCH=linux/arm
 # ARG IMAGE_ARCH=linux/arm64
 
 ARG BASE_IMAGE=wayland-base
+# For iMX8 with Vivante support (required to run Cog with hardware acceleration support) use:
+# ARG BASE_IMAGE=wayland-base-vivante
 # For iMX7 use:
 # ARG BASE_IMAGE=debian
 

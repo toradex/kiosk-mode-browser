@@ -6,6 +6,10 @@ variables:
   KIOSK_MODE_BROWSER_MAJOR: "2"
   KIOSK_MODE_BROWSER_MINOR: "2"
   KIOSK_MODE_BROWSER_PATCH: "0"
+
+  KIOSK_MODE_BROWSER_VIVANTE_MAJOR: "2"
+  KIOSK_MODE_BROWSER_VIVANTE_MINOR: "2"
+  KIOSK_MODE_BROWSER_VIVANTE_PATCH: "0"
   
   KIOSK_MODE_BROWSER_X11_MAJOR: "2"
   KIOSK_MODE_BROWSER_X11_MINOR: "2"
@@ -115,13 +119,20 @@ docker-build-kiosk-mode-browser-arm64:
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
   stage: build-kiosk-mode-browser
 
-#docker-build-kiosk-mode-browser-arm64-vivante:
-#  extends: .docker-build
-#  variables:
-#    BASE_IMAGE: torizon/arm64v8-debian-wayland-base-vivante
-#    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
-#    DOCKERFILE_FOLDER: "./"
-#  stage: build-kiosk-mode-browser
+docker-build-kiosk-mode-browser-arm64-vivante:
+  extends: .docker-build
+  before_script:
+    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_VIVANTE_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_VIVANTE_PATCH}"
+  variables:
+    IMAGE_ARCH: linux/arm64
+    IMAGE_TAG: ${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}
+    BASE_IMAGE: wayland-base-vivante
+    IMAGE_NAME: kiosk-mode-browser-vivante
+    DOCKERFILE_FOLDER: "./"
+    DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
+  stage: build-kiosk-mode-browser
 
 # Enable experimental features in Docker client (experimental feature are needed for manifest)
 .do_docker_experimental: &do_docker_experimental
@@ -188,6 +199,14 @@ docker-deploy-kiosk-mode-browser-arm64-major:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
   stage: deploy-major
 
+docker-deploy-kiosk-mode-browser-vivante-major:
+  extends: .docker-deploy-major
+  before_script:
+    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
+  variables:
+    IMAGE_NAME: kiosk-mode-browser-vivante
+  stage: deploy-major
+
 .docker-deploy-minor:
   when: manual
   script:
@@ -222,6 +241,15 @@ docker-deploy-kiosk-mode-browser-arm64-minor:
     - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
   variables:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+  stage: deploy-minor
+
+docker-deploy-kiosk-mode-browser-vivante-minor:
+  extends: .docker-deploy-minor
+  before_script:
+    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_VIVANTE_MINOR}"
+  variables:
+    IMAGE_NAME: kiosk-mode-browser-vivante
   stage: deploy-minor
 
 .docker-deploy-patch:
@@ -265,6 +293,16 @@ docker-deploy-kiosk-mode-browser-arm64-patch:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
   stage: deploy-patch
 
+docker-deploy-kiosk-mode-browser-vivante-patch:
+  extends: .docker-deploy-patch
+  before_script:
+    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_VIVANTE_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_VIVANTE_PATCH}"
+  variables:
+    IMAGE_NAME: kiosk-mode-browser-vivante
+  stage: deploy-patch
+
 .docker-deploy-patch-date:
   when: manual
   script:
@@ -305,6 +343,16 @@ docker-deploy-kiosk-mode-browser-arm64-patch-date:
     - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
   variables:
     IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+  stage: deploy-patch-date
+
+docker-deploy-kiosk-mode-browser-vivante-patch-date:
+  extends: .docker-deploy-patch-date
+  before_script:
+    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
+    - export MINOR="${KIOSK_MODE_BROWSER_VIVANTE_MINOR}"
+    - export PATCH="${KIOSK_MODE_BROWSER_VIVANTE_PATCH}"
+  variables:
+    IMAGE_NAME: kiosk-mode-browser-vivante
   stage: deploy-patch-date
 
 .docker-deploy-multiarch-major:
