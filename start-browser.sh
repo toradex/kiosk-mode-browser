@@ -12,7 +12,7 @@ start_chromium() {
     KIOSK_ENV="LIBGL_ALWAYS_SOFTWARE=1 $KIOSK_ENV"
 
     # default parms for kiosk mode
-    chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 "
+    chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 --disable-gpu "
     chromium_parms="--kiosk "
 
     # Additional params should be stacked chromium_parms_extended="$chromium_parms_extended ..."
