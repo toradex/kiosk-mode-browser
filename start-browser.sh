@@ -34,7 +34,7 @@ start_chromium() {
             ;;
         --virtual-keyboard)
             # Load the virtual keyboard
-            chromium_parms_extended="$chromium_parms_extended --load-extension=/chrome-extensions/chrome-virtual-keyboard"
+            chromium_parms_extended="$chromium_parms_extended --load-extension=/chrome-extensions/chrome-virtual-keyboard-master"
             shift
             ;;
         esac

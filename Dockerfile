@@ -12,18 +12,7 @@ ARG IMAGE_TAG=2
 # For iMX7 use:
 # ARG IMAGE_TAG=2-bullseye
 
-# First stage download virtual keyboard
-FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG AS first
-RUN apt-get -y update && \
-    apt-get install -y --no-install-recommends wget
-
-WORKDIR /extension
-
-# Download the virtual keyboard from gitlab
-RUN wget --no-check-certificate https://gitlab.int.toradex.com/rd/torizon-core/chrome-virtual-keyboard/-/archive/master/chrome-virtual-keyboard-master.tar.gz && tar -xf chrome-virtual-keyboard-master.tar.gz
-
-# Second stage build final container
-FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG AS second
+FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG
 
 # Needs to come after FROM!
 ARG BUILD_TYPE=wayland
@@ -53,8 +42,8 @@ RUN if [ "$BUILD_TYPE" = "wayland" ]; then \
     apt-get -o Acquire::Http::Dl-limit=100 -t experimental install -y --no-install-recommends cog && \
     apt-get clean && apt-get autoremove && rm -rf /var/lib/apt/lists/* ; fi
 
-# Copy the virtual keyboard extension from the first stage
-COPY --from=0 /extension/chrome-virtual-keyboard-master /chrome-extensions/chrome-virtual-keyboard
+# Unpack the virtual keyboard extension
+ADD chrome-virtual-keyboard.tar.gz /chrome-extensions
 
 COPY start-browser.sh /usr/bin/start-browser
 
