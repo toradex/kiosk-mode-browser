@@ -158,7 +158,7 @@ docker-build-kiosk-mode-browser-multiarch:
 
 # Docker deploy jobs
 #
-# Make sure DOCKER_HUB_USER/DOCKER_HUB_PW is properly set in the project
+# Make sure DOCKER_HUB_USER/DOCKER_HUB_TOKEN is properly set in the project
 # specific Gitlab CI settings.
 .docker-deploy:
   when: manual
@@ -172,7 +172,7 @@ docker-build-kiosk-mode-browser-multiarch:
     - export DOCKER_TAGS_CHECK="${MAJOR}.${MINOR}.${PATCH} ${MAJOR}.${MINOR}.${PATCH}-${DATE}"
     - export DOCKER_TAGS="${MAJOR} ${MAJOR}.${MINOR}"
     - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
-    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW;
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN;
     - for tag in ${DOCKER_TAGS_CHECK};
         do
           docker manifest inspect ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${tag} > /dev/null && true; RESULT=$?;
@@ -231,7 +231,7 @@ docker-deploy-kiosk-mode-browser-vivante:
   - export DOCKER_TAGS_CHECK="${MAJOR}.${MINOR}.${PATCH} ${MAJOR}.${MINOR}.${PATCH}-${DATE}"
   - export DOCKER_TAGS="${MAJOR} ${MAJOR}.${MINOR}"
   - rm -rf ~/.docker/manifests/*
-  - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PW
+  - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN
   - for tag in ${DOCKER_TAGS_CHECK};
       do
         docker manifest inspect ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${tag} > /dev/null && true; RESULT=$?;
