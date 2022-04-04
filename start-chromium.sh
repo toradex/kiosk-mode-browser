@@ -1,15 +1,7 @@
 #!/bin/sh
 
 # default URL
-KIOSK_URL="www.toradex.com"
-
-# LAUNCHER
-if [ -z "$KIOSK_LAUNCHER" ]; then
-    KIOSK_LAUNCHER="chromium"
-fi
-
-start_chromium() {
-    KIOSK_ENV="LIBGL_ALWAYS_SOFTWARE=1 $KIOSK_ENV"
+URL="www.toradex.com"
 
     # default parms for kiosk mode
     chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 --disable-gpu "
@@ -41,33 +33,8 @@ start_chromium() {
     done
 
     if [ ! -z "$1" ]; then
-        KIOSK_URL=$1
+        URL=$1
     fi
 
-    eval $KIOSK_ENV exec chromium $chromium_parms_base $chromium_parms_extended $KIOSK_ARGS $chromium_parms$KIOSK_URL
-}
+    exec chromium $chromium_parms_base $chromium_parms_extended $chromium_parms$URL
 
-start_cog() {
-    KIOSK_ENV="COG_PLATFORM_FDO_VIEW_FULLSCREEN=1 $KIOSK_ENV"
-    KIOSK_ARGS="-P fdo $KIOSK_ARGS"
-
-    if [ ! -z "$1" ]; then
-        KIOSK_URL=$1
-    fi
-
-    eval $KIOSK_ENV exec cog $KIOSK_ARGS $KIOSK_URL
-}
-
-case "$KIOSK_LAUNCHER" in
-    cog)
-        start_cog $@
-        ;;
-
-    chromium)
-        start_chromium $@
-        ;;
-
-    *)
-        echo "Launcher $KIOSK_LAUNCHER is invalid!"
-        exit 1
-esac

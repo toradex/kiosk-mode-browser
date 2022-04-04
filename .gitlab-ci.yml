@@ -3,18 +3,18 @@ image: docker:latest
 variables:
   DEBIAN_RELEASE: "bullseye"
   # container version
-  KIOSK_MODE_BROWSER_MAJOR: "2"
-  KIOSK_MODE_BROWSER_MINOR: "5"
-  KIOSK_MODE_BROWSER_PATCH: "0"
+  CHROMIUM_MAJOR: "2"
+  CHROMIUM_MINOR: "5"
+  CHROMIUM_PATCH: "0"
 
-  KIOSK_MODE_BROWSER_VIVANTE_MAJOR: "2"
-  KIOSK_MODE_BROWSER_VIVANTE_MINOR: "5"
-  KIOSK_MODE_BROWSER_VIVANTE_PATCH: "0"
-  
-  KIOSK_MODE_BROWSER_X11_MAJOR: "2"
-  KIOSK_MODE_BROWSER_X11_MINOR: "5"
-  KIOSK_MODE_BROWSER_X11_PATCH: "0"
-  
+  CHROMIUM_X11_MAJOR: "2"
+  CHROMIUM_X11_MINOR: "5"
+  CHROMIUM_X11_PATCH: "0"
+
+  COG_MAJOR: "2"
+  COG_MINOR: "5"
+  COG_PATCH: "0"
+
   # This should be set by docker image already, just to be sure...
   DOCKER_HOST: tcp://docker:2375
   # Use overlayfs driver for better performance
@@ -24,7 +24,6 @@ variables:
   GITLAB_DOCKERREGISTRY_SUFFIX: ${CI_COMMIT_REF_SLUG}-${CI_PIPELINE_ID}
   GITLAB_DOCKERREGISTRY_SUFFIX_LATEST: ${CI_COMMIT_REF_SLUG}-latest
 
-
 services:
   - name: docker:dind
 
@@ -32,8 +31,8 @@ before_script:
   - docker info
 
 stages:
-  - build-kiosk-mode-browser
-  - build-kiosk-mode-browser-multiarch
+  - build
+  - build-multiarch
   - deploy
   - deploy-multiarch
 
@@ -45,11 +44,13 @@ stages:
   variables:
     IMAGE_ARCH: linux/arm
     BUILD_TYPE: wayland
+    DOCKERFILE_NAME: Dockerfile.Chromium
   script:
     # Try to download latest image for cache, but don't fail if it does not exist
     - docker pull ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST} || true
     - export DATE=$(date +%Y%m%d)
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - docker build --build-arg BUILD_TYPE=${BUILD_TYPE}
                      --build-arg BASE_IMAGE=${BASE_IMAGE}
@@ -62,71 +63,88 @@ stages:
                      --label git.branch=${CI_COMMIT_BRANCH}
                      --label git.hash=${CI_COMMIT_SHA}
                      --label pipeline.id=${CI_PIPELINE_ID}
-                     -f ${DOCKERFILE_FOLDER}Dockerfile
+                     -f ${DOCKERFILE_NAME}
                      -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
                      -t ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
-                     ${DOCKERFILE_FOLDER}
+                        ${DOCKERFILE_FOLDER}
     - docker push ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX}
     - docker push ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
 
-docker-build-kiosk-mode-browser:
+docker-build-chromium:
   extends: .docker-build
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
+    - export MAJOR="${CHROMIUM_MAJOR}"
+    - export MINOR="${CHROMIUM_MINOR}"
+    - export PATCH="${CHROMIUM_PATCH}"
   variables:
-    IMAGE_TAG: ${KIOSK_MODE_BROWSER_MAJOR}
+    IMAGE_TAG: ${CHROMIUM_MAJOR}
     BASE_IMAGE: wayland-base
-    IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
+    IMAGE_NAME: arm32v7-chromium
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
-  stage: build-kiosk-mode-browser
+  stage: build
 
-docker-build-kiosk-mode-browser-x11:
+docker-build-chromium-x11:
   extends: .docker-build
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"
+    - export MAJOR="${CHROMIUM_X11_MAJOR}"
+    - export MINOR="${CHROMIUM_X11_MINOR}"
+    - export PATCH="${CHROMIUM_X11_PATCH}"
   variables:
-    IMAGE_TAG: ${KIOSK_MODE_BROWSER_X11_MAJOR}-${DEBIAN_RELEASE}
+    IMAGE_TAG: ${CHROMIUM_X11_MAJOR}-${DEBIAN_RELEASE}
     BASE_IMAGE: debian
-    IMAGE_NAME: kiosk-mode-browser-x11
+    IMAGE_NAME: chromium-x11
     BUILD_TYPE: x11
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
-  stage: build-kiosk-mode-browser
+  stage: build
 
-docker-build-kiosk-mode-browser-arm64:
+docker-build-chromium-arm64:
   extends: .docker-build
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
+    - export MAJOR="${CHROMIUM_MAJOR}"
+    - export MINOR="${CHROMIUM_MINOR}"
+    - export PATCH="${CHROMIUM_PATCH}"
   variables:
     IMAGE_ARCH: linux/arm64
-    IMAGE_TAG: ${KIOSK_MODE_BROWSER_MAJOR}
+    IMAGE_TAG: ${CHROMIUM_MAJOR}
     BASE_IMAGE: wayland-base
-    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+    IMAGE_NAME: arm64v8-chromium
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
-  stage: build-kiosk-mode-browser
+  stage: build
 
-docker-build-kiosk-mode-browser-arm64-vivante:
+docker-build-cog:
   extends: .docker-build
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_VIVANTE_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_VIVANTE_PATCH}"
+    - export MAJOR="${COG_MAJOR}"
+    - export MINOR="${COG_MINOR}"
+    - export PATCH="${COG_PATCH}"
+  variables:
+    IMAGE_ARCH: linux/arm
+    IMAGE_TAG: ${COG_MAJOR}
+    BASE_IMAGE: wayland-base
+    IMAGE_NAME: arm32v7-cog
+    DOCKERFILE_FOLDER: "./"
+    DOCKERFILE_NAME: "Dockerfile.Cog"
+    DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
+  stage: build
+
+docker-build-cog-arm64:
+  extends: .docker-build
+  before_script:
+    - export MAJOR="${COG_MAJOR}"
+    - export MINOR="${COG_MINOR}"
+    - export PATCH="${COG_PATCH}"
   variables:
     IMAGE_ARCH: linux/arm64
-    IMAGE_TAG: ${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}
+    IMAGE_TAG: ${COG_MAJOR}
     BASE_IMAGE: wayland-base-vivante
-    IMAGE_NAME: kiosk-mode-browser-vivante
+    IMAGE_NAME: arm64v8-cog
     DOCKERFILE_FOLDER: "./"
+    DOCKERFILE_NAME: "Dockerfile.Cog"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
-  stage: build-kiosk-mode-browser
+  stage: build
 
 # Enable experimental features in Docker client (experimental feature are needed for manifest)
 .do_docker_experimental: &do_docker_experimental
@@ -148,13 +166,21 @@ docker-build-kiosk-mode-browser-arm64-vivante:
   - docker manifest inspect -v ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
   - docker manifest push ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
 
-docker-build-kiosk-mode-browser-multiarch:
+docker-build-chromium-multiarch:
   extends: .docker-build-multiarch
   variables:
-    IMAGE_NAME: kiosk-mode-browser
-    IMAGE_NAME_32: arm32v7-debian-kiosk-mode-browser
-    IMAGE_NAME_64: arm64v8-debian-kiosk-mode-browser
-  stage: build-kiosk-mode-browser-multiarch
+    IMAGE_NAME: chromium
+    IMAGE_NAME_32: arm32v7-chromium
+    IMAGE_NAME_64: arm64v8-chromium
+  stage: build-multiarch
+
+docker-build-cog-multiarch:
+  extends: .docker-build-multiarch
+  variables:
+    IMAGE_NAME: cog
+    IMAGE_NAME_32: arm32v7-cog
+    IMAGE_NAME_64: arm64v8-cog
+  stage: build-multiarch
 
 # Docker deploy jobs
 #
@@ -184,44 +210,54 @@ docker-build-kiosk-mode-browser-multiarch:
           docker push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${tag};
         done
 
-docker-deploy-kiosk-mode-browser:
+docker-deploy-chromium:
   extends: .docker-deploy
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
+    - export MAJOR="${CHROMIUM_MAJOR}"
+    - export MINOR="${CHROMIUM_MINOR}"
+    - export PATCH="${CHROMIUM_PATCH}"
   variables:
-    IMAGE_NAME: arm32v7-debian-kiosk-mode-browser
+    IMAGE_NAME: arm32v7-chromium
   stage: deploy
 
-docker-deploy-kiosk-mode-browser-x11:
+docker-deploy-chromium-x11:
   extends: .docker-deploy
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_X11_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_X11_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_X11_PATCH}"
+    - export MAJOR="${CHROMIUM_X11_MAJOR}"
+    - export MINOR="${CHROMIUM_X11_MINOR}"
+    - export PATCH="${CHROMIUM_X11_PATCH}"
   variables:
-    IMAGE_NAME: kiosk-mode-browser-x11
+    IMAGE_NAME: chromium-x11
   stage: deploy
 
-docker-deploy-kiosk-mode-browser-arm64:
+docker-deploy-chromium-arm64:
   extends: .docker-deploy
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
+    - export MAJOR="${CHROMIUM_MAJOR}"
+    - export MINOR="${CHROMIUM_MINOR}"
+    - export PATCH="${CHROMIUM_PATCH}"
   variables:
-    IMAGE_NAME: arm64v8-debian-kiosk-mode-browser
+    IMAGE_NAME: arm64v8-chromium
   stage: deploy
 
-docker-deploy-kiosk-mode-browser-vivante:
+docker-deploy-cog:
   extends: .docker-deploy
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_VIVANTE_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_VIVANTE_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_VIVANTE_PATCH}"
+    - export MAJOR="${COG_MAJOR}"
+    - export MINOR="${COG_MINOR}"
+    - export PATCH="${COG_PATCH}"
   variables:
-    IMAGE_NAME: kiosk-mode-browser-vivante
+    IMAGE_NAME: arm32v7-cog
+  stage: deploy
+
+docker-deploy-cog-arm64:
+  extends: .docker-deploy
+  before_script:
+    - export MAJOR="${COG_MAJOR}"
+    - export MINOR="${COG_MINOR}"
+    - export PATCH="${COG_PATCH}"
+  variables:
+    IMAGE_NAME: arm64v8-cog
   stage: deploy
 
 .docker-deploy-multiarch:
@@ -246,15 +282,28 @@ docker-deploy-kiosk-mode-browser-vivante:
         docker manifest push ${DOCKER_HUB_REPOSITORY}/${IMAGE_NAME}:${tag};
       done
 
-docker-deploy-kiosk-mode-browser-multiarch:
+docker-deploy-chromium-multiarch:
   extends: .docker-deploy-multiarch
-  needs: ["docker-deploy-kiosk-mode-browser", "docker-deploy-kiosk-mode-browser-arm64"]
+  needs: ["docker-deploy-chromium", "docker-deploy-chromium-arm64"]
   before_script:
-    - export MAJOR="${KIOSK_MODE_BROWSER_MAJOR}"
-    - export MINOR="${KIOSK_MODE_BROWSER_MINOR}"
-    - export PATCH="${KIOSK_MODE_BROWSER_PATCH}"
+    - export MAJOR="${CHROMIUM_MAJOR}"
+    - export MINOR="${CHROMIUM_MINOR}"
+    - export PATCH="${CHROMIUM_PATCH}"
   variables:
-    IMAGE_NAME: kiosk-mode-browser
-    IMAGE_NAME_32: arm32v7-debian-kiosk-mode-browser
-    IMAGE_NAME_64: arm64v8-debian-kiosk-mode-browser
+    IMAGE_NAME: chromium
+    IMAGE_NAME_32: arm32v7-chromium
+    IMAGE_NAME_64: arm64v8-chromium
+  stage: deploy-multiarch
+
+docker-deploy-cog-multiarch:
+  extends: .docker-deploy-multiarch
+  needs: ["docker-deploy-cog", "docker-deploy-cog-arm64"]
+  before_script:
+    - export MAJOR="${COG_MAJOR}"
+    - export MINOR="${COG_MINOR}"
+    - export PATCH="${COG_PATCH}"
+  variables:
+    IMAGE_NAME: cog
+    IMAGE_NAME_32: arm32v7-cog
+    IMAGE_NAME_64: arm64v8-cog
   stage: deploy-multiarch
