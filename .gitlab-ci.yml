@@ -27,10 +27,8 @@ variables:
 services:
   - name: docker:dind
 
-before_script:
-  - docker info
-
 stages:
+  - lint
   - build
   - build-multiarch
   - deploy
@@ -51,6 +49,7 @@ stages:
     - export DATE=$(date +%Y%m%d)
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
+    - docker info
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - docker build --build-arg BUILD_TYPE=${BUILD_TYPE}
                      --build-arg BASE_IMAGE=${BASE_IMAGE}
@@ -72,6 +71,7 @@ stages:
 
 docker-build-chromium:
   extends: .docker-build
+  needs: []
   before_script:
     - export MAJOR="${CHROMIUM_MAJOR}"
     - export MINOR="${CHROMIUM_MINOR}"
@@ -86,6 +86,7 @@ docker-build-chromium:
 
 docker-build-chromium-x11:
   extends: .docker-build
+  needs: []
   before_script:
     - export MAJOR="${CHROMIUM_X11_MAJOR}"
     - export MINOR="${CHROMIUM_X11_MINOR}"
@@ -101,6 +102,7 @@ docker-build-chromium-x11:
 
 docker-build-chromium-arm64:
   extends: .docker-build
+  needs: []
   before_script:
     - export MAJOR="${CHROMIUM_MAJOR}"
     - export MINOR="${CHROMIUM_MINOR}"
@@ -116,6 +118,7 @@ docker-build-chromium-arm64:
 
 docker-build-cog:
   extends: .docker-build
+  needs: []
   before_script:
     - export MAJOR="${COG_MAJOR}"
     - export MINOR="${COG_MINOR}"
@@ -132,6 +135,7 @@ docker-build-cog:
 
 docker-build-cog-arm64:
   extends: .docker-build
+  needs: []
   before_script:
     - export MAJOR="${COG_MAJOR}"
     - export MINOR="${COG_MINOR}"
@@ -145,6 +149,17 @@ docker-build-cog-arm64:
     DOCKERFILE_NAME: "Dockerfile.Cog"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
   stage: build
+
+lint_dockerfile:
+  stage: lint
+  image: hadolint/hadolint:latest-debian
+  script:
+    # Some rules cannot be applied in our specific cases.
+    # However, since we don't want to completely ignore these rules,
+    # we are changing the following rules to have the level "info":
+    # - DL3008: pin versions in apt-get install
+    # - DL3029 (do not use --platform flag with FROM)
+    - hadolint Dockerfile.* --failure-threshold warning --info DL3008 --info DL3029
 
 # Enable experimental features in Docker client (experimental feature are needed for manifest)
 .do_docker_experimental: &do_docker_experimental
