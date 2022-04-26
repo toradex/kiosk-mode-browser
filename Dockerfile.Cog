@@ -11,11 +11,11 @@ ARG IMAGE_TAG=2
 FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG
 
 # Install Cog
-# We are currently not installing Cog on x11 builds (iMX7) due
-# to Cog crashing with SEGFAULT on non-GPU devices.
-RUN echo "deb http://deb.debian.org/debian experimental main" >> /etc/apt/sources.list && \
+# We are currently installing Cog from testing debian feed
+# to get more recent version(0.12.4-1), that supports also non-GPU devices.
+RUN echo "deb http://deb.debian.org/debian testing main" >> /etc/apt/sources.list && \
     apt-get -y update && \
-    apt-get -o Acquire::Http::Dl-limit=100 -t experimental install -y --no-install-recommends cog && \
+    apt-get -t testing install -y --no-install-recommends cog && \
     apt-get clean && apt-get autoremove && rm -rf /var/lib/apt/lists/*
 
 COPY start-cog.sh /usr/bin/start-browser

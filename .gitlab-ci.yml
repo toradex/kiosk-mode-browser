@@ -12,7 +12,7 @@ variables:
   CHROMIUM_X11_PATCH: "0"
 
   COG_MAJOR: "2"
-  COG_MINOR: "5"
+  COG_MINOR: "6"
   COG_PATCH: "0"
 
   # This should be set by docker image already, just to be sure...
