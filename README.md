@@ -10,7 +10,7 @@ Torizon provides support for Chromium and Cog.
 
 Chromium is an open-source browser project that aims to build a safer, faster, and more stable way for all users to experience the web. In the Chromium container, Chromium uses Ozone/Wayland as a rendering backend and it is not optimized for applications that require hardware acceleration and the GPU.
 
-Cog is a single "window" launcher for the WebKit WPE port. It is small, provides no user interface, and is suitable to be used as a Web application launcher. Cog is able to leverage the GPU for hardware-accelerated applications, which works well on iMX6 and iMX8 based modules. Currently, Cog doesn't work on devices that lack a GPU (e.g. iMX7 and iMX6ULL).
+Cog is a single "window" launcher for the WebKit WPE port. It is small, provides no user interface, and is suitable to be used as a Web application launcher. Cog is able to leverage the GPU for hardware-accelerated applications, which works well on iMX6 and iMX8 based modules. From Cog container with the container tag 2.6 onwards, Cog is supported also on devices that lack a GPU (e.g. iMX7 and iMX6ULL).
 
 ## Preparing the environment
 
@@ -47,9 +47,14 @@ $> docker run -d --ipc=host --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/d
               --security-opt="seccomp=unconfined" \
               torizon/chromium-x11:$CT_TAG_CHROMIUM_X11 https://www.toradex.com
 ```
+
+It's possibile to start Chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.
+- --window-mode : runs the browser inside a maximized window without navigation bar
+- --browser-mode : runs the browser in a standard window with navigation bars and all user menus enabled
+
 ## Running Cog
 
-You can run the following command to start the Cog container on iMX6 devices:
+You can run the following command to start the Cog container on iMX6 and iMX7 devices:
 
 ```bash
 $> docker run -d --rm --name=cog \
@@ -67,11 +72,11 @@ $> docker run -d --rm --name=cog \
     torizon/cog:$CT_TAG_COG
 ```
 
-### Optional command line flags
-
-It's possibile to start Chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.  
-- --window-mode : runs the browser inside a maximized window without navigation bar
-- --browser-mode : runs the browser in a standard window with navigation bars and all user menus enabled
+To change how the output will be configured, the following environment variables can be set:
+- COG_PLATFORM_WL_VIEW_FULLSCREEN
+- COG_PLATFORM_WL_VIEW_MAXIMIZE
+- COG_PLATFORM_WL_VIEW_WIDTH
+- COG_PLATFORM_WL_VIEW_HEIGHT
 
 ## Docker Compose
 
