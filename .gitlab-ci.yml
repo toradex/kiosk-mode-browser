@@ -13,7 +13,7 @@ variables:
 
   COG_MAJOR: "2"
   COG_MINOR: "6"
-  COG_PATCH: "0"
+  COG_PATCH: "1"
 
   # This should be set by docker image already, just to be sure...
   DOCKER_HOST: tcp://docker:2375

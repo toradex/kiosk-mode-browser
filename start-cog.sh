@@ -7,4 +7,4 @@ URL="www.toradex.com"
         URL=$1
     fi
 
-    exec cog $URL
+    eval exec cog $URL
