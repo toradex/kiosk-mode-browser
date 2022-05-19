@@ -3,8 +3,11 @@
 # default URL
 URL="www.toradex.com"
 
+# Enable GPU support by default
+ENABLE_GPU=1
+
 # default parms for kiosk mode
-chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 --disable-gpu "
+chromium_parms_base="--test-type --allow-insecure-localhost --disable-notifications --check-for-update-interval=315360000 "
 chromium_parms="--kiosk "
 
 # Additional params should be stacked chromium_parms_extended="$chromium_parms_extended ..."
@@ -29,8 +32,39 @@ do
         chromium_parms_extended="$chromium_parms_extended --load-extension=/chrome-extensions/chrome-virtual-keyboard-master"
         shift
         ;;
+    --disable-gpu)
+        # Disable GPU support completely
+        ENABLE_GPU=0
+        shift
+        ;;
+    --disable-gpu-compositing)
+        # Disable GPU Compositing only
+        chromium_parms_extended="$chromium_parms_extended --disable-gpu-compositing"
+        shift
+        ;;
     esac
 done
+
+# Disable GPU support for GPU-less devices
+if [ "$MACHINE" = "colibri-imx7-emmc" ] || [ "$MACHINE" = "colibri-imx6ull-emmc" ]; then
+    ENABLE_GPU=0
+fi
+
+# Setup GPU flags
+if [ "$ENABLE_GPU" -eq "1" ]; then
+    # Use EGL and OpenGL ES instead of GLX and regular OpenGL
+    chromium_parms_extended="$chromium_parms_extended --use-gl=egl"
+
+    # Ozone parameters
+    chromium_parms_extended="$chromium_parms_extended --enable-features=UseOzonePlatform --ozone-platform=wayland"
+
+    # Run the GPU process as a thread in the browser process.
+    # This is required to use Wayland EGL path
+    # See: https://github.com/OSSystems/meta-browser/issues/510#issuecomment-854653930
+    chromium_parms_extended="$chromium_parms_extended --in-process-gpu"
+else
+    chromium_parms_extended="$chromium_parms_extended --disable-gpu"
+fi
 
 if [ ! -z "$1" ]; then
     URL=$1
