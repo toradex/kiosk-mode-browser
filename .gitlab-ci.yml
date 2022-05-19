@@ -111,7 +111,7 @@ docker-build-chromium-arm64:
   variables:
     IMAGE_ARCH: linux/arm64
     IMAGE_TAG: ${CHROMIUM_MAJOR}
-    BASE_IMAGE: wayland-base
+    BASE_IMAGE: wayland-base-vivante
     IMAGE_NAME: arm64v8-chromium
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
