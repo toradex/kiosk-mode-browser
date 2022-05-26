@@ -25,32 +25,45 @@ The Chromium container needs visibility to some host resources (for accessing th
 You can run the following command to start the Chromium container on iMX6 devices:
 
 ```bash
-$> docker run -d --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
-              --device-cgroup-rule='c 226:* rmw' --shm-size="256m"
-              --security-opt="seccomp=unconfined" \
-              torizon/chromium:$CT_TAG_CHROMIUM https://www.toradex.com
+$> docker run -eMACHINE -d --rm --name=chromium \
+    -v /tmp:/tmp -v /dev/dri:/dev/dri \
+    -v /var/run/dbus:/var/run/dbus --device-cgroup-rule='c 226:* rmw' \
+    --security-opt seccomp=unconfined --shm-size 256mb \
+    torizon/chromium:$CT_TAG_CHROMIUM
 ```
 
 You can run the following command to start the Chromium container on iMX8 devices:
 
 ```bash
-$> docker run -d --rm --name=chromium \
-              -v /tmp:/tmp -v /var/run/dbus:/var/run/dbus \
-              --security-opt seccomp=unconfined --shm-size 256mb \
-              torizon/chromium:$CT_TAG_CHROMIUM https://www.toradex.com
+$> docker run -eMACHINE -d --rm --name=chromium \
+    -v /tmp:/tmp -v /var/run/dbus:/var/run/dbus \
+    -v /dev/galcore:/dev/galcore --device-cgroup-rule='c 199:* rmw' \
+    --security-opt seccomp=unconfined --shm-size 256mb \
+    torizon/chromium:$CT_TAG_CHROMIUM
 ```
 
 For the X11 build we have to provide shared memory access from the host system:
 ```bash
-$> docker run -d --ipc=host --rm -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
-              --device-cgroup-rule='c 226:* rmw' --shm-size="256m"
-              --security-opt="seccomp=unconfined" \
-              torizon/chromium-x11:$CT_TAG_CHROMIUM_X11 https://www.toradex.com
+$> docker run -eMACHINE -d --ipc=host --rm --name=chromium \
+    -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
+    --device-cgroup-rule='c 226:* rmw' --shm-size="256m" \
+    --security-opt="seccomp=unconfined" \
+    torizon/chromium-x11:$CT_TAG_CHROMIUM_X11
 ```
+
+### Optional command line flags
 
 It's possibile to start Chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.
 - --window-mode : runs the browser inside a maximized window without navigation bar
 - --browser-mode : runs the browser in a standard window with navigation bars and all user menus enabled
+- --virtual-keyboard : enables a virtual keyboard for text entry
+
+#### GPU Hardware Acceleration flags
+
+By default Chromium runs with GPU hardware acceleration for all devices except iMX7 and iMX6ULL. Following flags affect this feature:
+
+- --disable-gpu-compositing : Disables GPU compositing only. May increase performance for some applications at the cost of increased CPU utilization. Reduces the performance of WebGL applications.
+- --disable-gpu : Disables GPU hardware acceleration completely.
 
 ## Running Cog
 
