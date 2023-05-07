@@ -6,16 +6,13 @@ ARG BASE_IMAGE=wayland-base
 # For iMX8 with Vivante support (required to run Cog with hardware acceleration support) use:
 # ARG BASE_IMAGE=wayland-base-vivante
 
-ARG IMAGE_TAG=2
+ARG IMAGE_TAG=3
 
 FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG
 
 # Install Cog
-# We are currently installing Cog from testing debian feed
-# to get more recent version(0.12.4-1), that supports also non-GPU devices.
-RUN echo "deb http://deb.debian.org/debian testing main" >> /etc/apt/sources.list && \
-    apt-get -y update && \
-    apt-get -t testing install -y --no-install-recommends cog && \
+RUN apt-get -y update && \
+    apt-get install -y --no-install-recommends cog && \
     apt-get clean && apt-get autoremove && rm -rf /var/lib/apt/lists/*
 
 COPY start-cog.sh /usr/bin/start-browser

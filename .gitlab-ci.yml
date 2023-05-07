@@ -1,18 +1,18 @@
 image: docker:latest
 
 variables:
-  DEBIAN_RELEASE: "bullseye"
+  DEBIAN_RELEASE: "bookworm"
   # container version
-  CHROMIUM_MAJOR: "2"
-  CHROMIUM_MINOR: "7"
+  CHROMIUM_MAJOR: "3"
+  CHROMIUM_MINOR: "0"
   CHROMIUM_PATCH: "0"
 
-  CHROMIUM_X11_MAJOR: "2"
-  CHROMIUM_X11_MINOR: "7"
+  CHROMIUM_X11_MAJOR: "3"
+  CHROMIUM_X11_MINOR: "0"
   CHROMIUM_X11_PATCH: "0"
 
-  COG_MAJOR: "2"
-  COG_MINOR: "7"
+  COG_MAJOR: "3"
+  COG_MINOR: "0"
   COG_PATCH: "0"
 
   # This should be set by docker image already, just to be sure...
