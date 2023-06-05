@@ -3,28 +3,12 @@ ARG IMAGE_ARCH=linux/arm
 # ARG IMAGE_ARCH=linux/arm64
 
 ARG BASE_IMAGE=wayland-base
-# For iMX7 and iMX6ULL-emmc use:
-# ARG BASE_IMAGE=debian
 # For iMX8 use:
 # ARG BASE_IMAGE=wayland-base-vivante
 
 ARG IMAGE_TAG=3
-# For iMX7 and iMX6ULL-emmc use:
-# ARG IMAGE_TAG=3-bookworm
 
 FROM --platform=$IMAGE_ARCH torizon/$BASE_IMAGE:$IMAGE_TAG
-
-# Needs to come after FROM!
-ARG BUILD_TYPE=wayland
-# For iMX7 and iMX6ULL-emmc use:
-# ARG BUILD_TYPE=x11
-
-# If x11 build (iMX7 and iMX6ULL-emmc), use Chromium from Debian feed.
-# Chromium-X11 is installed from the testing feed to get the latest version
-# because version 99.0.4844.74-1~deb11u1 from stable feed is crashing.
-RUN test "$BUILD_TYPE" = "x11" && \
-        echo "deb http://deb.debian.org/debian testing main" >> /etc/apt/sources.list && \
-        sed -i '/feeds.toradex.com/d' /etc/apt/sources.list || true
 
 # Install Chromium
 RUN apt-get -y update && \

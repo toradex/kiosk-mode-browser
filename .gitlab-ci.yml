@@ -7,10 +7,6 @@ variables:
   CHROMIUM_MINOR: "0"
   CHROMIUM_PATCH: "0"
 
-  CHROMIUM_X11_MAJOR: "3"
-  CHROMIUM_X11_MINOR: "0"
-  CHROMIUM_X11_PATCH: "0"
-
   COG_MAJOR: "3"
   COG_MINOR: "0"
   COG_PATCH: "0"
@@ -42,7 +38,6 @@ stages:
 .docker-build:
   variables:
     IMAGE_ARCH: linux/arm
-    BUILD_TYPE: wayland
     DOCKERFILE_NAME: Dockerfile.Chromium
   script:
     # Try to download latest image for cache, but don't fail if it does not exist
@@ -52,8 +47,7 @@ stages:
     - docker login -u $CI_DOCKER_HUB_PULL_USER -p $CI_DOCKER_HUB_PULL_PASSWORD
     - docker info
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - docker build --build-arg BUILD_TYPE=${BUILD_TYPE}
-                     --build-arg BASE_IMAGE=${BASE_IMAGE}
+    - docker build --build-arg BASE_IMAGE=${BASE_IMAGE}
                      --build-arg IMAGE_TAG=${IMAGE_TAG}
                      --build-arg IMAGE_ARCH=${IMAGE_ARCH}
                      --cache-from ${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${GITLAB_DOCKERREGISTRY_SUFFIX_LATEST}
@@ -81,22 +75,6 @@ docker-build-chromium:
     IMAGE_TAG: ${CHROMIUM_MAJOR}
     BASE_IMAGE: wayland-base
     IMAGE_NAME: arm32v7-chromium
-    DOCKERFILE_FOLDER: "./"
-    DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
-  stage: build
-
-docker-build-chromium-x11:
-  extends: .docker-build
-  needs: []
-  before_script:
-    - export MAJOR="${CHROMIUM_X11_MAJOR}"
-    - export MINOR="${CHROMIUM_X11_MINOR}"
-    - export PATCH="${CHROMIUM_X11_PATCH}"
-  variables:
-    IMAGE_TAG: ${CHROMIUM_X11_MAJOR}-${DEBIAN_RELEASE}
-    BASE_IMAGE: debian
-    IMAGE_NAME: chromium-x11
-    BUILD_TYPE: x11
     DOCKERFILE_FOLDER: "./"
     DOCKER_NO_CACHE: ${DOCKER_NO_CACHE_FEEDS}
   stage: build
@@ -170,7 +148,6 @@ tag:
   before_script:
     - if [ -z ${GIT_TOKEN} ]; then echo "Missing variable GIT_TOKEN." && exit 1; fi
     - TAGS="chromium-${CHROMIUM_MAJOR}.${CHROMIUM_MINOR}.${CHROMIUM_PATCH}
-            chromium-x11-${CHROMIUM_X11_MAJOR}.${CHROMIUM_X11_MINOR}.${CHROMIUM_X11_PATCH}
             cog-${COG_MAJOR}.${COG_MINOR}.${COG_PATCH}"
   script:
   - apk update && apk add git
@@ -259,16 +236,6 @@ docker-deploy-chromium:
     - export PATCH="${CHROMIUM_PATCH}"
   variables:
     IMAGE_NAME: arm32v7-chromium
-  stage: deploy
-
-docker-deploy-chromium-x11:
-  extends: .docker-deploy
-  before_script:
-    - export MAJOR="${CHROMIUM_X11_MAJOR}"
-    - export MINOR="${CHROMIUM_X11_MINOR}"
-    - export PATCH="${CHROMIUM_X11_PATCH}"
-  variables:
-    IMAGE_NAME: chromium-x11
   stage: deploy
 
 docker-deploy-chromium-arm64:

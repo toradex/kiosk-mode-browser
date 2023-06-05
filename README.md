@@ -42,15 +42,6 @@ $> docker run -eMACHINE -d --rm --name=chromium \
     torizon/chromium:$CT_TAG_CHROMIUM
 ```
 
-For the X11 build we have to provide shared memory access from the host system:
-```bash
-$> docker run -eMACHINE -d --ipc=host --rm --name=chromium \
-    -v /tmp:/tmp -v /dev/dri:/dev/dri -v /var/run/dbus:/var/run/dbus \
-    --device-cgroup-rule='c 226:* rmw' --shm-size="256m" \
-    --security-opt="seccomp=unconfined" \
-    torizon/chromium-x11:$CT_TAG_CHROMIUM_X11
-```
-
 ### Optional command line flags
 
 It's possibile to start Chromium in less-secure ways (secure from the point of view of user being able to run other graphical apps etc.) using command line switches.
