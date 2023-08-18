@@ -5,11 +5,11 @@ variables:
   # container version
   CHROMIUM_MAJOR: "3"
   CHROMIUM_MINOR: "0"
-  CHROMIUM_PATCH: "0"
+  CHROMIUM_PATCH: "1"
 
   COG_MAJOR: "3"
   COG_MINOR: "0"
-  COG_PATCH: "0"
+  COG_PATCH: "1"
 
   # This should be set by docker image already, just to be sure...
   DOCKER_HOST: tcp://docker:2375
